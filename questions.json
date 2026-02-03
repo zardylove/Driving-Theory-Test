@@ -1,0 +1,154 @@
+{
+  "questions": [
+    {
+      "id": "q001",
+      "text": "What does this road sign mean?",
+      "options": [
+        "Stop and give way",
+        "Give way to oncoming traffic",
+        "National speed limit applies",
+        "No entry"
+      ],
+      "correctAnswer": 2,
+      "explanation": "This sign indicates that the national speed limit applies to the road. On single carriageways, this is 60 mph for cars.",
+      "category": "roadAndTrafficSigns",
+      "difficulty": "easy",
+      "imageURL": null
+    },
+    {
+      "id": "q002",
+      "text": "You are driving on a motorway. What is the speed limit for cars and motorcycles?",
+      "options": [
+        "60 mph",
+        "70 mph",
+        "80 mph",
+        "50 mph"
+      ],
+      "correctAnswer": 1,
+      "explanation": "The national speed limit on motorways for cars and motorcycles is 70 mph, unless signs show otherwise.",
+      "category": "motorwayRules",
+      "difficulty": "easy",
+      "imageURL": null
+    },
+    {
+      "id": "q003",
+      "text": "You see a pedestrian with a white stick and red band. This shows the person is:",
+      "options": [
+        "Physically disabled",
+        "Deaf and blind",
+        "Blind only",
+        "Deaf only"
+      ],
+      "correctAnswer": 1,
+      "explanation": "A white stick with a red band indicates that the person is deaf and blind. Extra care should be taken as they cannot see or hear approaching vehicles.",
+      "category": "vulnerableRoadUsers",
+      "difficulty": "medium",
+      "imageURL": null
+    },
+    {
+      "id": "q004",
+      "text": "When may you sound the horn on your vehicle?",
+      "options": [
+        "To give you right of way",
+        "To attract a friend's attention",
+        "To warn others of your presence",
+        "To make slower drivers move over"
+      ],
+      "correctAnswer": 2,
+      "explanation": "You may only sound your horn to warn other road users of your presence. It should not be used aggressively or between 11:30 pm and 7:00 am in built-up areas.",
+      "category": "rulesOfTheRoad",
+      "difficulty": "easy",
+      "imageURL": null
+    },
+    {
+      "id": "q005",
+      "text": "What is the most important reason for having a properly adjusted head restraint?",
+      "options": [
+        "To make you more comfortable",
+        "To help you avoid neck injury",
+        "To help you relax",
+        "To help you maintain your driving position"
+      ],
+      "correctAnswer": 1,
+      "explanation": "A properly adjusted head restraint will help prevent whiplash injuries in the event of a collision from behind.",
+      "category": "safetyAndYourVehicle",
+      "difficulty": "easy",
+      "imageURL": null
+    },
+    {
+      "id": "q006",
+      "text": "You are driving in heavy rain. Your steering suddenly becomes very light. What should you do?",
+      "options": [
+        "Steer towards the side of the road",
+        "Apply gentle acceleration",
+        "Brake firmly to reduce speed",
+        "Ease off the accelerator"
+      ],
+      "correctAnswer": 3,
+      "explanation": "This is aquaplaning - when water builds up between your tyres and the road surface. Ease off the accelerator and slow down gradually. Do not brake or turn the steering wheel suddenly.",
+      "category": "vehicleHandling",
+      "difficulty": "hard",
+      "imageURL": null
+    },
+    {
+      "id": "q007",
+      "text": "You are about to overtake a cyclist. Which one of the following is the main hazard you should be aware of?",
+      "options": [
+        "The cyclist may get off the bike",
+        "The cyclist may move to the left",
+        "The cyclist may swerve out into the road",
+        "The cyclist may stop pedalling"
+      ],
+      "correctAnswer": 2,
+      "explanation": "Cyclists may swerve out to avoid drains, potholes, or debris. Always give them plenty of room when overtaking.",
+      "category": "vulnerableRoadUsers",
+      "difficulty": "medium",
+      "imageURL": null
+    },
+    {
+      "id": "q008",
+      "text": "You are driving on a motorway. The car ahead shows its hazard warning lights for a short time. This tells you that:",
+      "options": [
+        "The driver wants you to overtake",
+        "The car ahead is about to change lanes",
+        "Traffic ahead is slowing or stopping suddenly",
+        "The car is about to stop on the hard shoulder"
+      ],
+      "correctAnswer": 2,
+      "explanation": "On motorways, briefly using hazard lights warns following traffic of a hazard ahead, usually stationary or slow-moving traffic.",
+      "category": "motorwayRules",
+      "difficulty": "medium",
+      "imageURL": null
+    },
+    {
+      "id": "q009",
+      "text": "What should you do when driving in fog?",
+      "options": [
+        "Use headlights on full beam",
+        "Use fog lights if visibility is less than 100 metres",
+        "Use sidelights only",
+        "Use hazard warning lights"
+      ],
+      "correctAnswer": 1,
+      "explanation": "You must use fog lights when visibility is seriously reduced, generally when you cannot see for more than 100 metres (328 feet).",
+      "category": "safetyMargins",
+      "difficulty": "medium",
+      "imageURL": null
+    },
+    {
+      "id": "q010",
+      "text": "At an incident, a casualty is unconscious but still breathing. You should only move them if:",
+      "options": [
+        "Bystanders will help you move them",
+        "An ambulance is on its way",
+        "There is further danger",
+        "They look uncomfortable"
+      ],
+      "correctAnswer": 2,
+      "explanation": "You should only move a casualty if there is further danger, such as risk of fire or further collisions. Moving them unnecessarily could cause further injury.",
+      "category": "incidents",
+      "difficulty": "hard",
+      "imageURL": null
+    }
+  ]
+}
