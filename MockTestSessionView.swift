@@ -29,9 +29,14 @@ struct MockTestSessionView: View {
         test.questions[currentQuestionIndex]
     }
 
+    // ✅ Use unique answered question IDs (prevents progress > 100% if duplicates ever occur)
+    private var answeredCount: Int {
+        Set(test.answers.map { $0.questionID }).count
+    }
+
     private var progress: Double {
         guard !test.questions.isEmpty else { return 0 }
-        return Double(test.answers.count) / Double(test.questions.count)
+        return Double(answeredCount) / Double(test.questions.count)
     }
 
     private var formattedTime: String {
@@ -106,7 +111,10 @@ struct MockTestSessionView: View {
             }
         }
         .onAppear {
-            // Load any previously-answered first question (if present)
+            // ✅ Restore timer value if this test already had time recorded
+            elapsedTime = test.totalTimeSpent
+
+            // Load any previously-answered current question (if present)
             syncSelectedAnswerWithSavedAnswer()
             startTimerIfNeeded()
         }
@@ -145,7 +153,7 @@ struct MockTestSessionView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
 
-                    Text("\(test.answers.count)/\(test.questions.count) answered")
+                    Text("\(answeredCount)/\(test.questions.count) answered")
                         .font(.caption.bold())
                         .foregroundColor(.accentColor)
                 }
@@ -247,10 +255,7 @@ struct MockTestSessionView: View {
     private func recordOrUpdateAnswer(selectedIndex: Int) {
         let isCorrect = currentQuestion.isCorrect(selectedIndex)
 
-        // If an answer exists for this question, replace it.
         if let existingIndex = test.answers.firstIndex(where: { $0.questionID == currentQuestion.id }) {
-            // Keep the existing UUID + timestamp by reusing the same id if you want,
-            // but simplest is to replace with a new UserAnswer.
             test.answers[existingIndex] = UserAnswer(
                 questionID: currentQuestion.id,
                 selectedAnswer: selectedIndex,
