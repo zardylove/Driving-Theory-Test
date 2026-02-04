@@ -1,48 +1,48 @@
 import SwiftUI
+import UserNotifications
 
 // MARK: - Settings View
 
 struct SettingsView: View {
-    
-    @EnvironmentObject var dataManager: DataManager
-    @Environment(\.dismiss) var dismiss
-    
+
+    @EnvironmentObject private var dataManager: DataManager
+    @Environment(\.openURL) private var openURL
+
     @State private var showClearDataAlert = false
     @State private var showClearTestsAlert = false
     @State private var showRestoreAlert = false
     @State private var isRestoring = false
     @State private var restoreMessage = ""
-    
+
     @AppStorage("notificationsEnabled") private var notificationsEnabled = false
     @AppStorage("soundEnabled") private var soundEnabled = true
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
-    
-    var appVersion: String {
+
+    private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     }
-    
-    var buildNumber: String {
+
+    private var buildNumber: String {
         Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     }
-    
+
     var body: some View {
         NavigationStack {
             List {
-                
-                // Account Section
+
                 accountSection
-                
-                // Preferences Section
+
                 preferencesSection
-                
-                // Data Management Section
+
                 dataManagementSection
-                
-                // Help & Info Section
+
                 helpSection
-                
-                // App Info Section
+
                 appInfoSection
+
+                #if DEBUG
+                developerToolsSection
+                #endif
             }
             .navigationTitle("Settings")
             .alert("Clear All Data?", isPresented: $showClearDataAlert) {
@@ -68,9 +68,9 @@ struct SettingsView: View {
             }
         }
     }
-    
+
     // MARK: - Account Section
-    
+
     private var accountSection: some View {
         Section(header: Text("Account")) {
             if dataManager.hasUnlockedFullAccess {
@@ -87,13 +87,12 @@ struct SettingsView: View {
                     Text("Free Plan")
                 }
             }
-            
+
             Button(action: restorePurchases) {
                 HStack {
                     if isRestoring {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                        Text("Restoring...")
+                        ProgressView().scaleEffect(0.8)
+                        Text("Restoring…")
                     } else {
                         Label("Restore Purchases", systemImage: "arrow.clockwise")
                     }
@@ -102,22 +101,22 @@ struct SettingsView: View {
             .disabled(isRestoring)
         }
     }
-    
+
     // MARK: - Preferences Section
-    
+
     private var preferencesSection: some View {
         Section(header: Text("Preferences")) {
-            
+
             Toggle(isOn: $notificationsEnabled) {
                 Label("Daily Reminders", systemImage: "bell.fill")
             }
             .tint(.accentColor)
-            
+
             Toggle(isOn: $soundEnabled) {
                 Label("Sound Effects", systemImage: "speaker.wave.2.fill")
             }
             .tint(.accentColor)
-            
+
             Toggle(isOn: $hapticsEnabled) {
                 Label("Haptic Feedback", systemImage: "waveform")
             }
@@ -129,13 +128,12 @@ struct SettingsView: View {
             }
         }
     }
-    
+
     // MARK: - Data Management Section
-    
+
     private var dataManagementSection: some View {
         Section(header: Text("Data Management")) {
-            
-            // Storage Info
+
             HStack {
                 Label("Practice History", systemImage: "doc.text")
                 Spacer()
@@ -143,7 +141,7 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
                     .font(.caption)
             }
-            
+
             HStack {
                 Label("Mock Tests", systemImage: "doc.text.fill")
                 Spacer()
@@ -151,39 +149,38 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
                     .font(.caption)
             }
-            
-            // Clear Actions
+
             Button(role: .destructive, action: { showClearTestsAlert = true }) {
                 Label("Clear Mock Test History", systemImage: "trash")
             }
-            
+
             Button(role: .destructive, action: { showClearDataAlert = true }) {
                 Label("Clear All Data", systemImage: "trash.fill")
             }
         }
     }
-    
+
     // MARK: - Help Section
-    
+
     private var helpSection: some View {
         Section(header: Text("Help & Information")) {
-            
+
             NavigationLink(destination: AboutView()) {
                 Label("About", systemImage: "info.circle")
             }
-            
+
             NavigationLink(destination: PrivacyPolicyView()) {
                 Label("Privacy Policy", systemImage: "hand.raised")
             }
-            
+
             NavigationLink(destination: TermsView()) {
                 Label("Terms of Use", systemImage: "doc.text")
             }
-            
+
             Button(action: contactSupport) {
                 Label("Contact Support", systemImage: "envelope")
             }
-            
+
             if let url = URL(string: "https://www.gov.uk/theory-test/revision-and-practice") {
                 Link(destination: url) {
                     HStack {
@@ -197,19 +194,19 @@ struct SettingsView: View {
             }
         }
     }
-    
+
     // MARK: - App Info Section
-    
+
     private var appInfoSection: some View {
         Section(header: Text("App Information")) {
-            
+
             HStack {
                 Text("Version")
                 Spacer()
                 Text("\(appVersion) (\(buildNumber))")
                     .foregroundColor(.secondary)
             }
-            
+
             #if DEBUG
             HStack {
                 Text("Environment")
@@ -217,76 +214,79 @@ struct SettingsView: View {
                 Text("Development")
                     .foregroundColor(.orange)
             }
-            
-            Section(header: Text("Developer Tools")) {
-                Button("Reset Purchase Status") {
-                    dataManager.resetPurchaseForTesting()
-                }
-                
-                Button("Unlock Premium") {
-                    dataManager.unlockForTesting()
-                }
-                
-                Button("Load Sample Data") {
-                    loadSampleData()
-                }
-            }
             #endif
         }
     }
-    
-    // MARK: - Actions
-    
-    private func restorePurchases() {
-        isRestoring = true
-        
-        Task {
-            do {
-                try await dataManager.restorePurchases()
-                
-                await MainActor.run {
-                    isRestoring = false
-                    if dataManager.hasUnlockedFullAccess {
-                        restoreMessage = "Successfully restored your purchase!"
-                    } else {
-                        restoreMessage = "No previous purchases found for this Apple ID."
-                    }
-                    showRestoreAlert = true
-                }
-            } catch {
-                await MainActor.run {
-                    isRestoring = false
-                    restoreMessage = "Unable to restore purchases. Please try again."
-                    showRestoreAlert = true
-                }
+
+    #if DEBUG
+    // MARK: - Developer Tools Section
+
+    private var developerToolsSection: some View {
+        Section(header: Text("Developer Tools")) {
+
+            Button("Reset Purchase Status") {
+                dataManager.resetPurchaseForTesting()
+            }
+
+            Button("Unlock Premium") {
+                dataManager.unlockForTesting()
+            }
+
+            Button("Load Sample Data") {
+                loadSampleData()
             }
         }
     }
-    
+    #endif
+
+    // MARK: - Actions
+
+    private func restorePurchases() {
+        guard !isRestoring else { return }
+        isRestoring = true
+
+        Task {
+            do {
+                try await dataManager.restorePurchases()
+
+                isRestoring = false
+                if dataManager.hasUnlockedFullAccess {
+                    restoreMessage = "Successfully restored your purchase!"
+                } else {
+                    restoreMessage = "No previous purchases were found for this Apple ID."
+                }
+                showRestoreAlert = true
+            } catch {
+                isRestoring = false
+                restoreMessage = "Unable to restore purchases. Please try again."
+                showRestoreAlert = true
+            }
+        }
+    }
+
     private func clearAllData() {
         dataManager.clearMockTestHistory()
-        dataManager.practiceHistory.removeAll()
-        dataManager.practiceSessions.removeAll()
-        
-        // Save empty state
-        UserDefaults.standard.removeObject(forKey: "practice_history")
-        UserDefaults.standard.removeObject(forKey: "practice_sessions")
-        UserDefaults.standard.removeObject(forKey: "mock_test_history")
+        dataManager.clearPracticeHistory()
     }
-    
+
     private func clearMockTests() {
         dataManager.clearMockTestHistory()
     }
-    
+
     private func contactSupport() {
         let email = dataManager.supportEmailValue
         if let url = URL(string: "mailto:\(email)") {
-            UIApplication.shared.open(url)
+            openURL(url)
+        } else {
+            // Very unlikely, but keeps things safe
+            UIPasteboard.general.string = email
+            restoreMessage = "Support email copied to clipboard: \(email)"
+            showRestoreAlert = true
         }
     }
-    
+
     private func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
             if !granted {
                 DispatchQueue.main.async {
                     notificationsEnabled = false
@@ -294,17 +294,16 @@ struct SettingsView: View {
             }
         }
     }
-    
+
     #if DEBUG
     private func loadSampleData() {
         // Add some sample test results for testing
         for i in 1...5 {
-            let questions = Array(dataManager.allQuestions.shuffled().prefix(50))
+            let questions = Array(dataManager.allQuestions.shuffled().prefix(MockTest.questionsPerTest))
             var test = MockTest(questions: questions, timerEnabled: i % 2 == 0)
-            
-            // Simulate random answers
+
             for question in questions {
-                let selectedAnswer = Int.random(in: 0...3)
+                let selectedAnswer = Int.random(in: 0..<max(2, question.options.count))
                 let isCorrect = question.isCorrect(selectedAnswer)
                 let answer = UserAnswer(
                     questionID: question.id,
@@ -313,21 +312,20 @@ struct SettingsView: View {
                 )
                 test.answers.append(answer)
             }
-            
-            test.endDate = Date().addingTimeInterval(-Double(i) * 86400) // i days ago
+
+            test.endDate = Date().addingTimeInterval(-Double(i) * 86400)
             test.totalTimeSpent = Double.random(in: 1200...2400)
-            
+
             dataManager.saveMockTest(test)
         }
     }
     #endif
 }
 
-// MARK: - DataManager Extension (Add these methods)
+// MARK: - DataManager Extension (keep if you don't already have it elsewhere)
 
 extension DataManager {
-    
-    /// Clear practice history
+
     func clearPracticeHistory() {
         practiceHistory.removeAll()
         practiceSessions.removeAll()
