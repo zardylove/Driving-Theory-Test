@@ -11,9 +11,27 @@ struct Question: Identifiable, Codable, Hashable {
     let category: QuestionCategory
     let difficulty: QuestionDifficulty
     let imageURL: String?
-    
+
+    /// Defensive check: avoids accidental crashes / bad scoring if data is malformed.
+    var isValid: Bool {
+        !id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        options.count >= 2 &&
+        options.allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty } &&
+        (0..<options.count).contains(correctAnswer)
+    }
+
+    /// Returns true if the selected answer matches the correct answer.
+    /// If the question data is invalid, this safely returns false.
     func isCorrect(_ selectedAnswer: Int) -> Bool {
+        guard (0..<options.count).contains(correctAnswer) else { return false }
         return selectedAnswer == correctAnswer
+    }
+
+    /// Handy for UI: returns the correct option text when data is valid.
+    var correctOptionText: String? {
+        guard (0..<options.count).contains(correctAnswer) else { return nil }
+        return options[correctAnswer]
     }
 }
 
@@ -34,7 +52,10 @@ enum QuestionCategory: String, Codable, CaseIterable {
     case essentialDocuments = "essentialDocuments"
     case incidents = "incidents"
     case vehicleLoading = "vehicleLoading"
-    
+
+    /// Used if decoding fails (e.g. old / unexpected JSON value).
+    static let fallback: QuestionCategory = .rulesOfTheRoad
+
     var displayName: String {
         switch self {
         case .alertness: return "Alertness"
@@ -53,7 +74,7 @@ enum QuestionCategory: String, Codable, CaseIterable {
         case .vehicleLoading: return "Vehicle Loading"
         }
     }
-    
+
     var icon: String {
         switch self {
         case .alertness: return "eye.fill"
@@ -72,6 +93,13 @@ enum QuestionCategory: String, Codable, CaseIterable {
         case .vehicleLoading: return "cube.box.fill"
         }
     }
+
+    // Safer decoding: if JSON contains an unexpected string, use fallback instead of failing.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = (try? container.decode(String.self)) ?? ""
+        self = QuestionCategory(rawValue: raw) ?? QuestionCategory.fallback
+    }
 }
 
 // MARK: - Question Difficulty
@@ -80,6 +108,15 @@ enum QuestionDifficulty: String, Codable, CaseIterable {
     case easy = "easy"
     case medium = "medium"
     case hard = "hard"
+
+    static let fallback: QuestionDifficulty = .medium
+
+    // Safer decoding: if JSON contains an unexpected string, use fallback instead of failing.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = (try? container.decode(String.self)) ?? ""
+        self = QuestionDifficulty(rawValue: raw) ?? QuestionDifficulty.fallback
+    }
 }
 
 // MARK: - Question Data (JSON wrapper)
@@ -99,7 +136,7 @@ struct UserAnswer: Identifiable, Codable {
     let selectedAnswer: Int
     let isCorrect: Bool
     let timestamp: Date
-    
+
     init(questionID: String, selectedAnswer: Int, isCorrect: Bool) {
         self.id = UUID()
         self.questionID = questionID
@@ -118,12 +155,12 @@ struct PracticeSession: Identifiable, Codable {
     let correctCount: Int
     let startDate: Date
     let endDate: Date
-    
+
     var accuracy: Double {
         guard questionCount > 0 else { return 0 }
         return Double(correctCount) / Double(questionCount) * 100
     }
-    
+
     init(category: QuestionCategory?, questionCount: Int, correctCount: Int, startDate: Date, endDate: Date) {
         self.id = UUID()
         self.category = category
