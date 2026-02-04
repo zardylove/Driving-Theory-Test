@@ -2,9 +2,9 @@ import SwiftUI
 
 @main
 struct DrivingTheoryTestApp: App {
-    
+
     @StateObject private var dataManager = DataManager()
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -16,48 +16,48 @@ struct DrivingTheoryTestApp: App {
 // MARK: - ContentView (Main Tab View)
 
 struct ContentView: View {
-    
+
     @EnvironmentObject var dataManager: DataManager
     @State private var selectedTab = 0
-    
+
     var body: some View {
         TabView(selection: $selectedTab) {
-            
+
             // Home
             HomeView()
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
                 .tag(0)
-            
+
             // Practice
             PracticeView()
                 .tabItem {
                     Label("Practice", systemImage: "book.fill")
                 }
                 .tag(1)
-            
+
             // Mock Tests
             MockTestsView()
                 .tabItem {
                     Label("Mock Tests", systemImage: "doc.text.fill")
                 }
                 .tag(2)
-            
+
             // Hazard
             HazardView()
                 .tabItem {
                     Label("Hazard", systemImage: "exclamationmark.triangle.fill")
                 }
                 .tag(3)
-            
-            // Progress
-            ProgressView()
+
+            // Progress  ✅ Renamed to avoid SwiftUI ProgressView clash
+            ProgressDashboardView()
                 .tabItem {
                     Label("Progress", systemImage: "chart.bar.fill")
                 }
                 .tag(4)
-            
+
             // More
             MoreView()
                 .tabItem {
@@ -65,7 +65,8 @@ struct ContentView: View {
                 }
                 .tag(5)
         }
-        .accentColor(.blue)
+        // Prefer tint for modern SwiftUI
+        .tint(.blue)
     }
 }
 
@@ -78,10 +79,10 @@ struct HazardView: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 80))
                     .foregroundColor(.orange)
-                
+
                 Text("Coming Soon")
                     .font(.title.bold())
-                
+
                 Text("Hazard perception practice will be available in a future update.")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -96,14 +97,14 @@ struct HazardView: View {
 // MARK: - More View
 
 struct MoreView: View {
-    
+
     @EnvironmentObject var dataManager: DataManager
     @State private var showPaywall = false
-    
+
     var body: some View {
         NavigationStack {
             List {
-                
+
                 // Purchase Section (if not unlocked)
                 if !dataManager.hasUnlockedFullAccess {
                     Section {
@@ -111,7 +112,7 @@ struct MoreView: View {
                             HStack {
                                 Image(systemName: "star.fill")
                                     .foregroundColor(.yellow)
-                                
+
                                 VStack(alignment: .leading) {
                                     Text("Unlock Full Access")
                                         .font(.headline)
@@ -119,9 +120,9 @@ struct MoreView: View {
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
-                                
+
                                 Spacer()
-                                
+
                                 Image(systemName: "chevron.right")
                                     .foregroundColor(.secondary)
                             }
@@ -137,37 +138,37 @@ struct MoreView: View {
                         }
                     }
                 }
-                
+
                 // Settings
                 Section(header: Text("App")) {
                     NavigationLink(destination: SettingsView()) {
                         Label("Settings", systemImage: "gearshape")
                     }
                 }
-                
+
                 // Help & Info
                 Section(header: Text("Help & Info")) {
-                    
+
                     NavigationLink(destination: AboutView()) {
                         Label("About", systemImage: "info.circle")
                     }
-                    
+
                     NavigationLink(destination: PrivacyPolicyView()) {
                         Label("Privacy Policy", systemImage: "hand.raised")
                     }
-                    
+
                     NavigationLink(destination: TermsView()) {
                         Label("Terms of Use", systemImage: "doc.text")
                     }
                 }
-                
+
                 // Debug (only in DEBUG builds)
                 #if DEBUG
                 Section(header: Text("Debug")) {
                     Button("Reset Purchase") {
                         dataManager.resetPurchaseForTesting()
                     }
-                    
+
                     Button("Unlock for Testing") {
                         dataManager.unlockForTesting()
                     }
@@ -176,7 +177,9 @@ struct MoreView: View {
             }
             .navigationTitle("More")
             .sheet(isPresented: $showPaywall) {
+                // Explicitly pass env object (extra safe)
                 PaywallView()
+                    .environmentObject(dataManager)
             }
         }
     }
