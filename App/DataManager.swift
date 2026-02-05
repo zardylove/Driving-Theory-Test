@@ -13,7 +13,7 @@ final class DataManager: ObservableObject {
     // MARK: - Constants
 
     private let fullAccessProductID = "full_access_299"
-    let supportEmailValue = "support@yourapp.com" // TODO: Change this
+    let supportEmailValue = "support@yourapp.com" // TODO: Change this later
 
     // MARK: - Questions Data
 
@@ -122,6 +122,9 @@ final class DataManager: ObservableObject {
     // MARK: - Restore Purchases
 
     func restorePurchases() async throws {
+        // ✅ This tells the App Store to re-check purchases and refresh entitlements.
+        try await AppStore.sync()
+
         var foundPurchase = false
 
         for await result in Transaction.currentEntitlements {
@@ -399,73 +402,4 @@ final class DataManager: ObservableObject {
     // MARK: - Mock Tests
 
     func generateMockTest() -> MockTest? {
-        if let balancedQuestions = generateBalancedMockTest(count: MockTest.questionsPerTest) {
-            return MockTest(questions: balancedQuestions, timerEnabled: true)
-        }
-
-        guard allQuestions.count >= MockTest.questionsPerTest else {
-            print("⚠️ Not enough questions for mock test")
-            return nil
-        }
-
-        let testQuestions = Array(allQuestions.shuffled().prefix(MockTest.questionsPerTest))
-        return MockTest(questions: testQuestions, timerEnabled: true)
-    }
-
-    func saveMockTest(_ test: MockTest) {
-        if !hasUnlockedFullAccess {
-            mockTestHistory.completedTests = [test]
-        } else {
-            mockTestHistory.completedTests.append(test)
-
-            if mockTestHistory.completedTests.count > 50 {
-                mockTestHistory.completedTests.removeFirst()
-            }
-        }
-
-        saveMockTestHistory()
-    }
-
-    func canTakeMockTest() -> Bool {
-        mockTestHistory.canTakeMockTest(isPremium: hasUnlockedFullAccess)
-    }
-
-    private func saveMockTestHistory() {
-        let encoder = JSONEncoder()
-
-        if let data = try? encoder.encode(mockTestHistory) {
-            UserDefaults.standard.set(data, forKey: StorageKey.mockTestHistory)
-        }
-    }
-
-    private func loadMockTestHistory() {
-        let decoder = JSONDecoder()
-
-        if let data = UserDefaults.standard.data(forKey: StorageKey.mockTestHistory),
-           let history = try? decoder.decode(MockTestHistory.self, from: data) {
-            mockTestHistory = history
-        }
-    }
-
-    func clearMockTestHistory() {
-        mockTestHistory = MockTestHistory()
-        UserDefaults.standard.removeObject(forKey: StorageKey.mockTestHistory)
-    }
-}
-
-// MARK: - Testing Helper (Remove in Production)
-
-#if DEBUG
-extension DataManager {
-
-    func resetPurchaseForTesting() {
-        hasUnlockedFullAccess = false
-        print("⚠️ Purchase reset for testing")
-    }
-
-    func unlockForTesting() {
-        hasUnlockedFullAccess = true
-        print("⚠️ Unlocked for testing (not a real purchase)")
-    }
-}
-#endif
+        if let balancedQuesti
