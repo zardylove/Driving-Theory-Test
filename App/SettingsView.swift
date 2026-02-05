@@ -267,7 +267,6 @@ struct SettingsView: View {
 
 #if DEBUG
     private func loadSampleData() {
-        // Adds a few sample mock tests for testing UI
         for i in 1...5 {
             let questions = Array(dataManager.allQuestions.shuffled().prefix(MockTest.questionsPerTest))
             var test = MockTest(questions: questions, timerEnabled: i % 2 == 0)
@@ -318,16 +317,31 @@ struct AboutView: View {
 struct PrivacyPolicyView: View {
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 14) {
+
                 Text("Privacy Policy")
                     .font(.title.bold())
 
-                Text("This is an early version of the app. At the moment, the app does not collect personal data.")
-                    .font(.body)
+                Text("This app does not collect personal data.")
+                    .font(.headline)
 
-                Text("Later, if features such as analytics, accounts, or online images are added, this policy will be updated.")
+                VStack(alignment: .leading, spacing: 10) {
+                    Bullet(text: "No accounts (you don’t sign in).")
+                    Bullet(text: "No tracking.")
+                    Bullet(text: "No analytics SDKs (at this stage).")
+                    Bullet(text: "Your progress is stored only on your device using Apple’s standard storage.")
+                    Bullet(text: "If you buy Premium, payment is handled by Apple via the App Store (we do not see your payment details).")
+                }
+
+                Text("If we add online features later (such as downloading images), we will update this policy and the App Store privacy details.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
+
+                Text("Support")
+                    .font(.headline)
+
+                Text("If you have any questions, contact: \(DataManager().supportEmailValue)")
+                    .font(.body)
             }
             .padding()
         }
@@ -339,14 +353,18 @@ struct PrivacyPolicyView: View {
 struct TermsView: View {
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 14) {
+
                 Text("Terms of Use")
                     .font(.title.bold())
 
-                Text("This app is provided for educational practice. No guarantee is made that using the app will result in passing the theory test.")
+                Text("This app is provided for educational practice.")
+                    .font(.headline)
+
+                Text("We do our best to provide accurate content, but we do not guarantee that using the app will result in passing the theory test.")
                     .font(.body)
 
-                Text("Note: This app is not affiliated with the DVSA.")
+                Text("This app is not affiliated with the DVSA.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
@@ -354,6 +372,21 @@ struct TermsView: View {
         }
         .navigationTitle("Terms of Use")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Small reusable bullet row
+
+private struct Bullet: View {
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text("•")
+            Text(text)
+            Spacer(minLength: 0)
+        }
+        .font(.body)
     }
 }
 
