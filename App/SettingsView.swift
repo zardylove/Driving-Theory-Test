@@ -1,5 +1,5 @@
 import SwiftUI
-import UserNotifications
+import UIKit
 
 // MARK: - Settings View
 
@@ -14,7 +14,6 @@ struct SettingsView: View {
     @State private var isRestoring = false
     @State private var restoreMessage = ""
 
-    @AppStorage("notificationsEnabled") private var notificationsEnabled = false
     @AppStorage("soundEnabled") private var soundEnabled = true
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
 
@@ -31,18 +30,14 @@ struct SettingsView: View {
             List {
 
                 accountSection
-
                 preferencesSection
-
                 dataManagementSection
-
                 helpSection
-
                 appInfoSection
 
-                #if DEBUG
+#if DEBUG
                 developerToolsSection
-                #endif
+#endif
             }
             .navigationTitle("Settings")
             .alert("Clear All Data?", isPresented: $showClearDataAlert) {
@@ -51,7 +46,7 @@ struct SettingsView: View {
                     clearAllData()
                 }
             } message: {
-                Text("This will delete all your practice history, test results, and progress. This action cannot be undone.")
+                Text("This will delete all your practice history, sessions, and mock test results. This action cannot be undone.")
             }
             .alert("Clear Mock Test History?", isPresented: $showClearTestsAlert) {
                 Button("Cancel", role: .cancel) { }
@@ -69,10 +64,11 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Account Section
+    // MARK: - Sections
 
     private var accountSection: some View {
         Section(header: Text("Account")) {
+
             if dataManager.hasUnlockedFullAccess {
                 HStack {
                     Image(systemName: "checkmark.seal.fill")
@@ -91,7 +87,7 @@ struct SettingsView: View {
             Button(action: restorePurchases) {
                 HStack {
                     if isRestoring {
-                        ProgressView().scaleEffect(0.8)
+                        ProgressView().scaleEffect(0.9)
                         Text("Restoring…")
                     } else {
                         Label("Restore Purchases", systemImage: "arrow.clockwise")
@@ -102,15 +98,8 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Preferences Section
-
     private var preferencesSection: some View {
         Section(header: Text("Preferences")) {
-
-            Toggle(isOn: $notificationsEnabled) {
-                Label("Daily Reminders", systemImage: "bell.fill")
-            }
-            .tint(.accentColor)
 
             Toggle(isOn: $soundEnabled) {
                 Label("Sound Effects", systemImage: "speaker.wave.2.fill")
@@ -121,15 +110,12 @@ struct SettingsView: View {
                 Label("Haptic Feedback", systemImage: "waveform")
             }
             .tint(.accentColor)
-        }
-        .onChange(of: notificationsEnabled) { _, newValue in
-            if newValue {
-                requestNotificationPermission()
-            }
+
+            // NOTE:
+            // We are intentionally NOT showing "Daily Reminders" yet.
+            // It will come back once we implement real scheduling (not just permission).
         }
     }
-
-    // MARK: - Data Management Section
 
     private var dataManagementSection: some View {
         Section(header: Text("Data Management")) {
@@ -159,8 +145,6 @@ struct SettingsView: View {
             }
         }
     }
-
-    // MARK: - Help Section
 
     private var helpSection: some View {
         Section(header: Text("Help & Information")) {
@@ -195,8 +179,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - App Info Section
-
     private var appInfoSection: some View {
         Section(header: Text("App Information")) {
 
@@ -207,20 +189,18 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
             }
 
-            #if DEBUG
+#if DEBUG
             HStack {
                 Text("Environment")
                 Spacer()
                 Text("Development")
                     .foregroundColor(.orange)
             }
-            #endif
+#endif
         }
     }
 
-    #if DEBUG
-    // MARK: - Developer Tools Section
-
+#if DEBUG
     private var developerToolsSection: some View {
         Section(header: Text("Developer Tools")) {
 
@@ -237,7 +217,7 @@ struct SettingsView: View {
             }
         }
     }
-    #endif
+#endif
 
     // MARK: - Actions
 
@@ -275,29 +255,19 @@ struct SettingsView: View {
 
     private func contactSupport() {
         let email = dataManager.supportEmailValue
+
         if let url = URL(string: "mailto:\(email)") {
             openURL(url)
         } else {
-            // Very unlikely, but keeps things safe
             UIPasteboard.general.string = email
             restoreMessage = "Support email copied to clipboard: \(email)"
             showRestoreAlert = true
         }
     }
 
-    private func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
-            if !granted {
-                DispatchQueue.main.async {
-                    notificationsEnabled = false
-                }
-            }
-        }
-    }
-
-    #if DEBUG
+#if DEBUG
     private func loadSampleData() {
-        // Add some sample test results for testing
+        // Adds a few sample mock tests for testing UI
         for i in 1...5 {
             let questions = Array(dataManager.allQuestions.shuffled().prefix(MockTest.questionsPerTest))
             var test = MockTest(questions: questions, timerEnabled: i % 2 == 0)
@@ -319,13 +289,77 @@ struct SettingsView: View {
             dataManager.saveMockTest(test)
         }
     }
-    #endif
+#endif
 }
 
-// MARK: - DataManager Extension (keep if you don't already have it elsewhere)
+// MARK: - Simple Info Screens (kept in the same file for beginner simplicity)
+
+struct AboutView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("About")
+                    .font(.title.bold())
+
+                Text("Driving Theory Test is a practice app to help you prepare for the UK driving theory test.")
+                    .font(.body)
+
+                Text("Note: This app is not affiliated with the DVSA.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+        }
+        .navigationTitle("About")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct PrivacyPolicyView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Privacy Policy")
+                    .font(.title.bold())
+
+                Text("This is an early version of the app. At the moment, the app does not collect personal data.")
+                    .font(.body)
+
+                Text("Later, if features such as analytics, accounts, or online images are added, this policy will be updated.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+        }
+        .navigationTitle("Privacy Policy")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct TermsView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Terms of Use")
+                    .font(.title.bold())
+
+                Text("This app is provided for educational practice. No guarantee is made that using the app will result in passing the theory test.")
+                    .font(.body)
+
+                Text("Note: This app is not affiliated with the DVSA.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+        }
+        .navigationTitle("Terms of Use")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - DataManager helper (kept here because your project currently has no separate file for it)
 
 extension DataManager {
-
     func clearPracticeHistory() {
         practiceHistory.removeAll()
         practiceSessions.removeAll()
