@@ -17,13 +17,5 @@
     <key>UILaunchStoryboardName</key>
     <string>LaunchScreen</string>
 
-    <!-- Notifications (only needed if you actually request notification permission) -->
-    <key>NSUserNotificationUsageDescription</key>
-    <string>This app can send daily reminders to help you practice.</string>
-
-    <!-- Privacy / Tracking -->
-    <key>NSUserTrackingUsageDescription</key>
-    <string>We do not track you.</string>
-
 </dict>
 </plist>
